@@ -1,9 +1,6 @@
 ####################################################################################
 # TODO:
-# 1) Seperate the use of slurm from this script, such that this script does not rely
-#    on slurm and only on qchem, then this script can be run on the cluster using
-#    slurm if so wished.
-# 2) Utilize the ability to run multiple jobs in parallel.
+#    Utilize the ability to run multiple jobs in parallel.
 #    Perhaps continue the golden-section search for both possible sections (and for
 #    each subsection continue the search in the two new possible subsubsections and
 #    so forth) and collaps child sections if the parent section resolved to not be
@@ -14,8 +11,8 @@
 # range corrected hybrid functionals for a given system, by enforcing DFT's version
 # of Koopman's theorem, IP = -E_homo. This is done via a golden-section search
 # algorithm to minimize the value of (IP + E_homo)^2.
-# Note that this requires the premise that (IP + E_homo)^2 is unimodal for
-# the range of omegas under investigation.
+# Note that this requires the premise that (IP + E_homo)^2 is unimodal with respect
+# to omega for the range of omegas under investigation.
 
 # An input file for the system we are optimizing named N.in must be in the
 # same directory as this script. Additionally, the input for a +1 cation of
@@ -35,11 +32,11 @@ $molecule
 $end
 
 $rem
-    JOBTYPE     SP
-    EXCHANGE    gen
-    LRC_DFT     TRUE
-    OMEGA       xxx
-    BASIS       def2-TZVPP
+    jobtype     sp
+    exchange    gen
+    lrc_dft     true
+    omega       xxx
+    omgea       def2-TZVPP
 $end
 
 $xc_functional
@@ -59,11 +56,11 @@ $molecule
 $end
 
 $rem
-    JOBTYPE     SP
-    EXCHANGE    gen
-    LRC_DFT     TRUE
-    OMEGA       xxx
-    BASIS       def2-TZVPP
+    jobtype     SP
+    exchange    gen
+    lrc_dft     TRUE
+    omega       xxx
+    basis       def2-TZVPP
 $end
 
 $xc_functional
@@ -81,21 +78,23 @@ import sys
 from argparse import ArgumentParser
 from typing import Callable
 
+OUTPUT_FILE = "tuning.out"
+
 
 def write(text: str):
     """
     Append text to the output file.
     """
-    with open("tuning.out", "a+") as output:
+    with open(OUTPUT_FILE, "a+") as output:
         output.write(text)
 
 
 # golden-section search algorithm
-def gss(f: Callable[[int], float], a: int, b: int, tolerance: int) -> int:
+def intiger_gss(f: Callable[[int], float], a: int, b: int, tolerance: int) -> int:
     """
     Golden-Section search - find the minimum of f on [a,b]
     * f must be strictly unimodal on [a,b]
-    This implementation uses intigers for x-values since omega must be an intiger between 0 and 1000.
+    This implementation uses only intigers for x-values since omega must be an intiger between 0 and 1000.
     """
 
     INVPHI = (math.sqrt(5) - 1) / 2  # 1/phi where phi is the golden ratio
@@ -115,61 +114,34 @@ def gss(f: Callable[[int], float], a: int, b: int, tolerance: int) -> int:
         if f_c < f_d:
             b = d
             f_b = f_d
-        if f(c) < f(d):
-            b = d
-            f_b = f_d
         else:
             a = c
             f_a = f_c
 
-    if f_a < f_b:
+    if f_a == 0:
+        return a
+    elif f_b == 0:
+        return b
+    elif f_a < f_b:
         return math.floor((b + a) / 2)
     else:
         return math.ceil((b + a) / 2)
 
 
-def square_difference(omega: int) -> float:
+def IP_plus_HOMO_squared(omega: int) -> float:
     """
     Return the sqaure of the sum of th IP and the homo energies for a given omega.
     """
     write(f"\nStarting Calculations for omega={omega}:\n")
 
-    E_N, E_P, E_homo = single_point(omega)
-    IP = E_P - E_N
-    squared_sum = (IP + E_homo) ** 2
-
-    write(f"(IP + E_homo)^2 = {squared_sum}\n")
-    return squared_sum
-
-
-# run single point calculations and extract energies from output
-def single_point(omega: int) -> tuple[float, float, float]:
-    """
-    Run single point calculations for both neutral and cation species
-    and return the tuple (neutral energy, cation energy, homo of neutral species).
-    """
-    # create new input files with the correct omega
+    # create new input files with omega
     if os.path.isfile(f"scratch/input/N_{omega}.in") and os.path.isfile(
         f"scratch/input/P_{omega}.in"
     ):
         write("Input files already exist.\n")
     else:
         write("Creating input files...\n")
-        with open(f"N.in", "r") as N:
-            N_input = N.read()
-
-        N_input = N_input.replace("xxx", f"{omega}")
-
-        with open(f"scratch/input/N_{omega}.in", "w") as N_omega:
-            N_omega.write(N_input)
-
-        with open(f"P.in", "r") as P:
-            P_input = P.read()
-
-        P_input = P_input.replace("xxx", f"{omega}")
-
-        with open(f"scratch/input/P_{omega}.in", "w") as P_omega:
-            P_omega.write(P_input)
+        create_input_files(omega)
 
     # run qchem jobs for both N and P
     if os.path.isfile(f"scratch/output/N_{omega}.out") and os.path.isfile(
@@ -178,23 +150,55 @@ def single_point(omega: int) -> tuple[float, float, float]:
         write("Output files already exist.\n")
     else:
         write("Running calculations...\n")
-        subprocess.call(["sbatch", "--wait", "single_point.sh", f"{omega}"])
+        run_qchem_job(f"scratch/input/N_{omega}.in", f"scratch/output/N_{omega}.out")
+        run_qchem_job(f"scratch/input/P_{omega}.in", f"scratch/output/P_{omega}.out")
         write("Calculations done.\n")
 
     # extract data from the output
     write("\nExtracting data from output...\n")
     E_N, E_homo = extract_energies(f"scratch/output/N_{omega}.out")
     E_P, _ = extract_energies(f"scratch/output/P_{omega}.out")
-    write(f"E_N: {E_N}, E_P: {E_P}, E_homo: {E_homo}\n")
+    write(f"E(N): {E_N}, E(N-1): {E_P}, HOMO: {E_homo}\n")
 
-    return (E_N, E_P, E_homo)
+    IP = E_P - E_N
+    squared_sum = (IP + E_homo) ** 2
+    write(f"(IP + HOMO)^2 = {squared_sum}\n")
+
+    return squared_sum
+
+
+def create_input_files(omega: int) -> None:
+    """
+    Create input files for the N and P calculations with the given omega.
+    """
+    with open(f"N.in", "r") as N:
+        N_input = N.read()
+
+    N_input = N_input.replace("xxx", f"{omega}")
+
+    with open(f"scratch/input/N_{omega}.in", "w") as N_omega:
+        N_omega.write(N_input)
+
+    with open(f"P.in", "r") as P:
+        P_input = P.read()
+
+    P_input = P_input.replace("xxx", f"{omega}")
+
+    with open(f"scratch/input/P_{omega}.in", "w") as P_omega:
+        P_omega.write(P_input)
+
+
+def run_qchem_job(input: str, output: str) -> None:
+    """
+    Run a qchem single-point calculation, this blocks the script untill the job has finished.
+    """
+    subprocess.call(["bash", "single_point.sh", f"{input}", f"{output}"])
 
 
 def extract_energies(file: str) -> tuple[float, float]:
     """
-    Extract Total energies and homo energies from single-point calculation output.
+    Extract Total energy and homo energy from a qchem single-point calculation output file.
     """
-
     # initializtion and flags
     E_total = 0
     E_homo = 0
@@ -287,11 +291,9 @@ def main(argv: list[str]) -> int:
         os.makedirs("scratch/input")
     if not os.path.exists("scratch/output"):
         os.makedirs("scratch/output")
-    if not os.path.exists("scratch/slurm"):
-        os.makedirs("scratch/slurm")
 
     # create an output file, it will be appended with each calculation.
-    with open("tuning.out", "w") as output:
+    with open(OUTPUT_FILE, "w") as output:
         with open("N.in", "r") as N:
             with open("P.in", "r") as P:
                 output.write(
@@ -305,22 +307,25 @@ def main(argv: list[str]) -> int:
                 )
 
     # run the optimization
-    optimal_omega = gss(square_difference, lower_bound, upper_bound, tolerance)
+    optimal_omega = intiger_gss(
+        IP_plus_HOMO_squared, lower_bound, upper_bound, tolerance
+    )
+
     write(
         f"\n----------------------------------------------------\n"
         f"|                   CONVERGED                      |\n"
         f"----------------------------------------------------\n"
-        f"\noptimal omega: {optimal_omega}"
+        f"\noptimal omega: {optimal_omega}\n"
     )
 
-    # move scratch directory into a history directory so that it doesn't interfere with the next job
-    print("\nArchiving files...")
-    if not os.path.exists("history"):
-        os.makedirs("history")
+    # move scratch directory into a archive directory so that it doesn't interfere with the next job
+    write("\nArchiving files...\n")
+    if not os.path.exists("archive"):
+        os.makedirs("archive")
     timestamp = str(datetime.datetime.now()).replace(" ", "_").replace(":", "-")
-    subprocess.call(["mv", "scratch", f"history/{timestamp}"])
+    subprocess.call(["mv", "scratch", f"archive/{timestamp}"])
 
-    print("\nFinished.")
+    write("\nFinished.")
     return 0
 
 

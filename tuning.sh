@@ -11,8 +11,8 @@
 #SBATCH -A tamars-account
 #SBATCH -p tamarsq
 
-source /opt/qcsetup_5.4omp.sh
+# source /opt/qcsetup_5.4omp.sh
 
 # this script runs the tuning python script on the cluster
 
-python tuning.py
+python tuning.py "$@"
