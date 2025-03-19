@@ -1,6 +1,8 @@
 ####################################################################################
 # TODO:
-# 1) Take range of omega values as input.
+# 1) Seperate the use of slurm from this script, such that this script does not rely
+#    on slurm and only on qchem, then this script can be run on the cluster using
+#    slurm if so wished.
 # 2) Utilize the ability to run multiple jobs in parallel.
 #    Perhaps continue the golden-section search for both possible sections (and for
 #    each subsection continue the search in the two new possible subsubsections and
@@ -89,17 +91,16 @@ def write(text: str):
 
 
 # golden-section search algorithm
-def gss(f: Callable[[int], float], a: int, b: int, tolerance: int):
+def gss(f: Callable[[int], float], a: int, b: int, tolerance: int) -> int:
     """
     Golden-Section search - find the minimum of f on [a,b]
     * f must be strictly unimodal on [a,b]
-    This implementation uses intigers for x-values because omega must be an intiger between 0 and 1000.
+    This implementation uses intigers for x-values since omega must be an intiger between 0 and 1000.
     """
 
     INVPHI = (math.sqrt(5) - 1) / 2  # 1/phi where phi is the golden ratio
 
-    if a < 0 or b > 1000:
-        sys.exit("bounds for omega must be between 0 and 1000")
+    f_a = f_b = 0
     while b - a > tolerance:
         c = round(b - (b - a) * INVPHI)
         d = round(a + (b - a) * INVPHI)
@@ -109,17 +110,22 @@ def gss(f: Callable[[int], float], a: int, b: int, tolerance: int):
             f"GSS values: a:{a}, b:{b}, c:{c}, d:{d}\n"
         )
 
+        f_c = f(c)
+        f_d = f(d)
+        if f_c < f_d:
+            b = d
+            f_b = f_d
         if f(c) < f(d):
             b = d
+            f_b = f_d
         else:
             a = c
-    write(
-        f"\n----------------------------------------------------\n"
-        f"|                   CONVERGED                      |\n"
-        f"----------------------------------------------------\n"
-    )
+            f_a = f_c
 
-    return (b + a) / 2
+    if f_a < f_b:
+        return math.floor((b + a) / 2)
+    else:
+        return math.ceil((b + a) / 2)
 
 
 def square_difference(omega: int) -> float:
@@ -197,7 +203,7 @@ def extract_energies(file: str) -> tuple[float, float]:
     passed_beta = False
     symmetry_on_MO = False
 
-    with open(file, "r") as N_output:
+    with open(os.path.abspath(file), "r") as N_output:
         lines = N_output.readlines()
         for i, line in enumerate(lines):
             if "Orbital Energies (a.u.) and Symmetries" in line:
@@ -248,10 +254,19 @@ def main(argv: list[str]) -> int:
         "--bounds",
         nargs=2,
         action="store",
-        default=[200,800],
+        default=[200, 800],
         type=int,
-        dest='bounds',
+        dest="bounds",
         help="Custom bounds for omega, must be two intigers between 0 and 1000.",
+    )
+    parser.add_argument(
+        "-t",
+        "--tolerance",
+        action="store",
+        default=1,
+        type=int,
+        dest="tolerance",
+        help="When the size of range containing omega reaches the tolerance, the center of the range is given as omega. Must be an intiger between 1 and 999.",
     )
     args = parser.parse_args(argv[1:])
 
@@ -260,23 +275,12 @@ def main(argv: list[str]) -> int:
         lower_bound, upper_bound = args.bounds
     else:
         upper_bound, lower_bound = args.bounds
-    print(lower_bound, upper_bound)
+    if lower_bound < 0 or upper_bound > 1000:
+        parser.error("Bounds for omega must be between 0 and 1000.")
 
-    return 0
-    # if len(argv) == 1:  # only argument is 'tuning.py'
-    #     lower_bound, upper_bound = 200, 800  # default range for omega
-    # elif len(argv) == 3:
-    #     try:
-    #         lower_bound, upper_bound = int(argv[1]), int(argv[2])
-    #     except ValueError:
-    #         print("ERROR: both bounds must be intigers between 0 and 1000")
-    #         return 1
-    #     if lower_bound > upper_bound or lower_bound < 0 or upper_bound > 1000:
-    #         print("ERROR: both bounds must be intigers between 0 and 1000")
-    #         return 1
-    # else:
-    #     print("ERROR: Enter either zero or two arguments.")
-    #     return 1
+    tolerance = args.tolerance
+    if tolerance < 1 or tolerance > 999:
+        parser.error("Tolerance must be an intiger between 1 and 999.")
 
     # create directories for files created by this script under the "scratch" directory
     if not os.path.exists("scratch/input"):
@@ -301,8 +305,13 @@ def main(argv: list[str]) -> int:
                 )
 
     # run the optimization
-    optimal_omega = gss(square_difference, lower_bound, upper_bound, 1)
-    write(f"\noptimal omega: {optimal_omega}")
+    optimal_omega = gss(square_difference, lower_bound, upper_bound, tolerance)
+    write(
+        f"\n----------------------------------------------------\n"
+        f"|                   CONVERGED                      |\n"
+        f"----------------------------------------------------\n"
+        f"\noptimal omega: {optimal_omega}"
+    )
 
     # move scratch directory into a history directory so that it doesn't interfere with the next job
     print("\nArchiving files...")
