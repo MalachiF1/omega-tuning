@@ -9,20 +9,20 @@
 
 # This script finds the optimal omega value (in units of 1/1000 bohr^-1) for long
 # range corrected hybrid functionals for a given system, by enforcing DFT's version
-# of Koopman's theorem, IP = -E_homo. This is done via a golden-section search
-# algorithm to minimize the value of (IP + E_homo)^2.
+# of Koopman's theorem, IP = -HOMO. This is done via a golden-section search algorithm
+# to minimize the value of (IP + E_homo)^2.
 # Note that this requires the premise that (IP + E_homo)^2 is unimodal with respect
 # to omega for the range of omegas under investigation.
 
 # An input file for the system we are optimizing named N.in must be in the
 # same directory as this script. Additionally, the input for a +1 cation of
-# the system (if the original system's charge is +1 then this cation will be
-# +2 and so forth) should be named P.in and must be in the aforementioned
-# directory. For both input files replace the value for OMEGA in the $rem
-# section with the string 'xxx'.
-# The single_point.sh file should be in the same directory as this script as well.
+# the system with the same functional and basis (if the original system's charge
+# is +1 then this cation will be +2 and so forth) should be named P.in and must
+# be in the aforementioned directory. For both input files, replace the value for
+# OMEGA in the $rem section with the string 'xxx'.
+# The qchem.sh file should be in the same directory as this script as well.
 
-# example for N.in using H20 and the LRC-wPBEh functional:
+# Example for N.in for H20 and the LRC-wPBEh functional:
 """
 $molecule
     0 1
@@ -36,7 +36,7 @@ $rem
     exchange    gen
     lrc_dft     true
     omega       xxx
-    omgea       def2-TZVPP
+    basis       def2-TZVPP
 $end
 
 $xc_functional
@@ -46,7 +46,7 @@ $xc_functional
 $end
 """
 
-# example for P.in using H2O and the LRC-wPBEh functional:
+# Example for P.in for H2O and the LRC-wPBEh functional:
 """
 $molecule
     1 2
@@ -89,48 +89,35 @@ def write(text: str):
         output.write(text)
 
 
-# golden-section search algorithm
-def intiger_gss(f: Callable[[int], float], a: int, b: int, tolerance: int) -> int:
+def gss(f: Callable[[int], float], a: float, b: float, tolerance: float) -> int:
     """
     Golden-Section search - find the minimum of f on [a,b]
     * f must be strictly unimodal on [a,b]
-    This implementation uses only intigers for x-values since omega must be an intiger between 0 and 1000.
+    This implementation is for a function that takes in only intigers (f:Z->R).
     """
 
     INVPHI = (math.sqrt(5) - 1) / 2  # 1/phi where phi is the golden ratio
 
-    f_a = f_b = 0
     while b - a > tolerance:
-        c = round(b - (b - a) * INVPHI)
-        d = round(a + (b - a) * INVPHI)
+        c = b - (b - a) * INVPHI
+        d = a + (b - a) * INVPHI
 
         write(
             f"\n----------------------------------------------------\n"
             f"GSS values: a:{a}, b:{b}, c:{c}, d:{d}\n"
         )
 
-        f_c = f(c)
-        f_d = f(d)
-        if f_c < f_d:
+        if f(round(c)) < f(round(d)):
             b = d
-            f_b = f_d
         else:
             a = c
-            f_a = f_c
 
-    if f_a == 0:
-        return a
-    elif f_b == 0:
-        return b
-    elif f_a < f_b:
-        return math.floor((b + a) / 2)
-    else:
-        return math.ceil((b + a) / 2)
+    return round((b + a) / 2)
 
 
 def IP_plus_HOMO_squared(omega: int) -> float:
     """
-    Return the sqaure of the sum of th IP and the homo energies for a given omega.
+    Return the sqaure of the sum of the IP and the homo energies for a given omega.
     """
     write(f"\nStarting Calculations for omega={omega}:\n")
 
@@ -190,9 +177,9 @@ def create_input_files(omega: int) -> None:
 
 def run_qchem_job(input: str, output: str) -> None:
     """
-    Run a qchem single-point calculation, this blocks the script untill the job has finished.
+    Run a qchem calculation, this blocks the script untill the job has finished.
     """
-    subprocess.call(["bash", "single_point.sh", f"{input}", f"{output}"])
+    subprocess.call(["bash", "qchem.sh", f"{input}", f"{output}"])
 
 
 def extract_energies(file: str) -> tuple[float, float]:
@@ -207,6 +194,7 @@ def extract_energies(file: str) -> tuple[float, float]:
     passed_beta = False
     symmetry_on_MO = False
 
+    # read the output file
     with open(os.path.abspath(file), "r") as N_output:
         lines = N_output.readlines()
         for i, line in enumerate(lines):
@@ -239,10 +227,13 @@ def extract_energies(file: str) -> tuple[float, float]:
                 else:
                     write("ERROR: could not find alpha orbital energies")
 
+    # If E_total or E_homo remain zero (as they were initialized) we must have not found them in the ouput.
     if E_total == 0:
-        write("ERROR: E_total could not be found")
+        write("ERROR: E_total could not be found\n")
+        raise Exception("ERROR: E_total could not be found")
     if E_homo == 0:
-        write("ERROR: E_homo could not be found")
+        write("ERROR: E_homo could not be found\n")
+        raise Exception("ERROR: E_homo could not be found")
 
     return (E_total, E_homo)
 
@@ -259,7 +250,7 @@ def main(argv: list[str]) -> int:
         nargs=2,
         action="store",
         default=[200, 800],
-        type=int,
+        type=float,
         dest="bounds",
         help="Custom bounds for omega, must be two intigers between 0 and 1000.",
     )
@@ -267,14 +258,14 @@ def main(argv: list[str]) -> int:
         "-t",
         "--tolerance",
         action="store",
-        default=1,
-        type=int,
+        default=0.2,
+        type=float,
         dest="tolerance",
-        help="When the size of range containing omega reaches the tolerance, the center of the range is given as omega. Must be an intiger between 1 and 999.",
+        help="When the size of range containing omega reaches the tolerance, rounding the center of the range is given as omega.",
     )
     args = parser.parse_args(argv[1:])
 
-    # extract bounds for omega
+    # extract bounds for omega from the arguments
     if args.bounds[0] < args.bounds[1]:
         lower_bound, upper_bound = args.bounds
     else:
@@ -282,9 +273,11 @@ def main(argv: list[str]) -> int:
     if lower_bound < 0 or upper_bound > 1000:
         parser.error("Bounds for omega must be between 0 and 1000.")
 
+    # extract convergance tolerance from the arguments
     tolerance = args.tolerance
-    if tolerance < 1 or tolerance > 999:
-        parser.error("Tolerance must be an intiger between 1 and 999.")
+    print(tolerance, upper_bound - lower_bound)
+    if tolerance > upper_bound - lower_bound:
+        parser.error("Tolerance must smaller than the starting bounds of omega.")
 
     # create directories for files created by this script under the "scratch" directory
     if not os.path.exists("scratch/input"):
@@ -294,23 +287,31 @@ def main(argv: list[str]) -> int:
 
     # create an output file, it will be appended with each calculation.
     with open(OUTPUT_FILE, "w") as output:
+        output.write(
+            f"Output file for omega tuning.\n"
+            f"\nJob Specifications:\n"
+            f"-------------------\n"
+            f"Bounds for omega: [{lower_bound}, {upper_bound}]\n"
+            f"Tolerance: {tolerance}\n"
+        )
+        # copy N.in and P.in to the output file
         with open("N.in", "r") as N:
-            with open("P.in", "r") as P:
-                output.write(
-                    f"Output file for omega tuning.\n"
-                    f"\n------------------------ N.in ----------------------\n"
-                    f"{N.read()}"
-                    f"----------------------------------------------------\n"
-                    f"\n------------------------ P.in ----------------------\n"
-                    f"{P.read()}"
-                    f"----------------------------------------------------\n"
-                )
+            output.write(
+                f"\n------------------------ N.in ----------------------\n"
+                f"{N.read()}"
+                f"----------------------------------------------------\n"
+            )
+        with open("P.in", "r") as P:
+            output.write(
+                f"\n------------------------ P.in ----------------------\n"
+                f"{P.read()}"
+                f"----------------------------------------------------\n"
+            )
 
     # run the optimization
-    optimal_omega = intiger_gss(
-        IP_plus_HOMO_squared, lower_bound, upper_bound, tolerance
-    )
+    optimal_omega = gss(IP_plus_HOMO_squared, lower_bound, upper_bound, tolerance)
 
+    # write the final value for omega
     write(
         f"\n----------------------------------------------------\n"
         f"|                   CONVERGED                      |\n"

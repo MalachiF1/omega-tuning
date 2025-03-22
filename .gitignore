@@ -3,6 +3,7 @@ P.in
 archive
 scratch
 tuning.out
+tuning.sh
 .P_*
 .N_*
 
