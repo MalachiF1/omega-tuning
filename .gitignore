@@ -7,3 +7,8 @@ tuning.sh
 .P_*
 .N_*
 
+!sample_run/tuning.out
+!sample_run/archive
+!sample_run/N.in
+!sample_run/P.in
+

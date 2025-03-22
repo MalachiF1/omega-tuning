@@ -1,0 +1,414 @@
+Output file for omega tuning.
+
+Job Specifications:
+-------------------
+Bounds for omega: [200, 800]
+Tolerance: 0.2
+
+------------------------ N.in ----------------------
+$molecule
+    0 1
+    O        -0.0589468554    0.2678084446    0.0000000000
+    H        -0.9158854857   -0.1614307441    0.0000000000
+    H         0.5742936224   -0.4515745405    0.0000000000
+$end
+
+$rem
+    jobtype     sp
+    exchange    gen
+    lrc_dft     true
+    omega       xxx
+    basis       def2-TZVPP
+$end
+
+$xc_functional
+    C   PBE     1.0
+    X   wPBE    0.8
+    K           0.2
+$end
+----------------------------------------------------
+
+------------------------ P.in ----------------------
+$molecule
+    1 2
+    O        -0.0589468554    0.2678084446    0.0000000000
+    H        -0.9158854857   -0.1614307441    0.0000000000
+    H         0.5742936224   -0.4515745405    0.0000000000
+$end
+
+$rem
+    jobtype     SP
+    exchange    gen
+    lrc_dft     TRUE
+    omega       xxx
+    basis       def2-TZVPP
+$end
+
+$xc_functional
+    C   PBE     1.0
+    X   wPBE    0.8
+    K           0.2
+$end
+----------------------------------------------------
+
+----------------------------------------------------
+ITTERATION 1
+GSS values: a:200, b:800, c:429.17960675006304, d:570.820393249937
+
+Starting Calculations for omega=429:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4125099516, E(N-1): -75.9492604786, HOMO: -0.466
+(IP + HOMO)^2 = 7.565398777703058e-06
+
+Starting Calculations for omega=571:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4206970946, E(N-1): -75.9588774909, HOMO: -0.491
+(IP + HOMO)^2 = 0.0008514955282246144
+
+----------------------------------------------------
+ITTERATION 2
+GSS values: a:200, b:570.820393249937, c:341.6407864998738, d:429.17960675006316
+
+Starting Calculations for omega=342:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4049480349, E(N-1): -75.9413210898, HOMO: -0.444
+(IP + HOMO)^2 = 0.000385216973958541
+
+Starting Calculations for omega=429:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4125099516, E(N-1): -75.9492604786, HOMO: -0.466
+(IP + HOMO)^2 = 7.565398777703058e-06
+
+----------------------------------------------------
+ITTERATION 3
+GSS values: a:341.6407864998738, b:570.820393249937, c:429.17960675006304, d:483.2815729997477
+
+Starting Calculations for omega=429:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4125099516, E(N-1): -75.9492604786, HOMO: -0.466
+(IP + HOMO)^2 = 7.565398777703058e-06
+
+Starting Calculations for omega=483:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4162798755, E(N-1): -75.9534691203, HOMO: -0.477
+(IP + HOMO)^2 = 0.0002013346679944389
+
+----------------------------------------------------
+ITTERATION 4
+GSS values: a:341.6407864998738, b:483.2815729997477, c:395.74275274955835, d:429.17960675006316
+
+Starting Calculations for omega=396:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4098374905, E(N-1): -75.946394074, HOMO: -0.458
+(IP + HOMO)^2 = 2.963078319245857e-05
+
+Starting Calculations for omega=429:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4125099516, E(N-1): -75.9492604786, HOMO: -0.466
+(IP + HOMO)^2 = 7.565398777703058e-06
+
+----------------------------------------------------
+ITTERATION 5
+GSS values: a:395.74275274955835, b:483.2815729997477, c:429.1796067500631, d:449.84471899924296
+
+Starting Calculations for omega=429:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4125099516, E(N-1): -75.9492604786, HOMO: -0.466
+(IP + HOMO)^2 = 7.565398777703058e-06
+
+Starting Calculations for omega=450:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.414068442, E(N-1): -75.950972433, HOMO: -0.47
+(IP + HOMO)^2 = 4.7665091728117e-05
+
+----------------------------------------------------
+ITTERATION 6
+GSS values: a:395.74275274955835, b:449.84471899924296, c:416.4078649987382, d:429.1796067500631
+
+Starting Calculations for omega=416:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4114887447, E(N-1): -75.9481558108, HOMO: -0.463
+(IP + HOMO)^2 = 1.1084498176347984e-07
+
+Starting Calculations for omega=429:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4125099516, E(N-1): -75.9492604786, HOMO: -0.466
+(IP + HOMO)^2 = 7.565398777703058e-06
+
+----------------------------------------------------
+ITTERATION 7
+GSS values: a:395.74275274955835, b:429.1796067500631, c:408.51449450088325, d:416.4078649987382
+
+Starting Calculations for omega=409:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4109216239, E(N-1): -75.9475475154, HOMO: -0.461
+(IP + HOMO)^2 = 5.636391169730207e-06
+
+Starting Calculations for omega=416:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4114887447, E(N-1): -75.9481558108, HOMO: -0.463
+(IP + HOMO)^2 = 1.1084498176347984e-07
+
+----------------------------------------------------
+ITTERATION 8
+GSS values: a:408.51449450088325, b:429.1796067500631, c:416.40786499873815, d:421.2862362522082
+
+Starting Calculations for omega=416:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4114887447, E(N-1): -75.9481558108, HOMO: -0.463
+(IP + HOMO)^2 = 1.1084498176347984e-07
+
+Starting Calculations for omega=421:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4118865001, E(N-1): -75.9485845999, HOMO: -0.464
+(IP + HOMO)^2 = 4.873433307683584e-07
+
+----------------------------------------------------
+ITTERATION 9
+GSS values: a:408.51449450088325, b:421.2862362522082, c:413.3928657543533, d:416.40786499873815
+
+Starting Calculations for omega=413:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4112471469, E(N-1): -75.9478962404, HOMO: -0.462
+(IP + HOMO)^2 = 1.8249483717340725e-06
+
+Starting Calculations for omega=416:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4114887447, E(N-1): -75.9481558108, HOMO: -0.463
+(IP + HOMO)^2 = 1.1084498176347984e-07
+
+----------------------------------------------------
+ITTERATION 10
+GSS values: a:413.3928657543533, b:421.2862362522082, c:416.4078649987382, d:418.2712370078233
+
+Starting Calculations for omega=416:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4114887447, E(N-1): -75.9481558108, HOMO: -0.463
+(IP + HOMO)^2 = 1.1084498176347984e-07
+
+Starting Calculations for omega=418:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+----------------------------------------------------
+ITTERATION 11
+GSS values: a:416.4078649987382, b:421.2862362522082, c:418.2712370078233, d:419.4228642431231
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=419:
+Creating input files...
+Running calculations...
+Calculations done.
+
+Extracting data from output...
+E(N): -76.4117281385, E(N-1): -75.9484136637, HOMO: -0.464
+(IP + HOMO)^2 = 4.6994479983417703e-07
+
+----------------------------------------------------
+ITTERATION 12
+GSS values: a:416.4078649987382, b:419.4228642431231, c:417.559492234038, d:418.27123700782334
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+----------------------------------------------------
+ITTERATION 13
+GSS values: a:417.559492234038, b:419.4228642431231, c:418.27123700782334, d:418.71111946933775
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=419:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4117281385, E(N-1): -75.9484136637, HOMO: -0.464
+(IP + HOMO)^2 = 4.6994479983417703e-07
+
+----------------------------------------------------
+ITTERATION 14
+GSS values: a:417.559492234038, b:418.71111946933775, c:417.99937469555243, d:418.2712370078233
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+----------------------------------------------------
+ITTERATION 15
+GSS values: a:417.99937469555243, b:418.71111946933775, c:418.27123700782334, d:418.43925715706683
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+----------------------------------------------------
+ITTERATION 16
+GSS values: a:418.27123700782334, b:418.71111946933775, c:418.4392571570669, d:418.5430993200942
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=419:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4117281385, E(N-1): -75.9484136637, HOMO: -0.464
+(IP + HOMO)^2 = 4.6994479983417703e-07
+
+----------------------------------------------------
+ITTERATION 17
+GSS values: a:418.27123700782334, b:418.5430993200942, c:418.37507917085065, d:418.4392571570669
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+Starting Calculations for omega=418:
+Input files already exist.
+Output files already exist.
+
+Extracting data from output...
+E(N): -76.4116485867, E(N-1): -75.9483279049, HOMO: -0.463
+(IP + HOMO)^2 = 1.0283681685063476e-07
+
+----------------------------------------------------
+|                   CONVERGED                      |
+----------------------------------------------------
+
+Tuned omega: 418
+
+Archiving files...
+
+Finished.

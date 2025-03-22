@@ -1,0 +1,20 @@
+$molecule
+    1 2
+    O        -0.0589468554    0.2678084446    0.0000000000
+    H        -0.9158854857   -0.1614307441    0.0000000000
+    H         0.5742936224   -0.4515745405    0.0000000000
+$end
+
+$rem
+    jobtype     SP
+    exchange    gen
+    lrc_dft     TRUE
+    omega       409
+    basis       def2-TZVPP
+$end
+
+$xc_functional
+    C   PBE     1.0
+    X   wPBE    0.8
+    K           0.2
+$end
